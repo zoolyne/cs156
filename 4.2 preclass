@@ -1,1 +1,67 @@
+from PIL import Image
 
+from glob import glob
+import numpy as np
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+
+import random
+
+# size that all the images will be shaped to
+STANDARD_SIZE = (200,200)
+
+# get all of the image files 
+s_files = glob('shirtimages/*')
+j_files = glob('sizedimages/*')
+
+#processing tests
+test = Image.open(s_files[0])
+print(test.size, test.format, test.mode)
+data = np.asarray(test)
+print(type(data))
+print(data.shape)
+test.show()
+
+load_img_rz = np.array(Image.open(s_files[2]).resize((200,200)))
+
+def img_to_array(filename):
+    """
+    takes a filename and turns it into a numpy array of grayscale pixels
+    """
+    img = Image.open(filename).convert('L')
+    rz_img = img.resize(STANDARD_SIZE)
+    data = np.asarray(rz_img)
+    return np.ndarray.tolist(data)
+
+#fetch and preprocess the data
+shirts = []
+for shirt in s_files:
+    shirts.append([img_to_array(shirt),0])
+
+jerseys = []
+for jersey in j_files:
+    jerseys.append([img_to_array(jersey),1])
+
+#assemble dataset
+data = [shirts, jerseys]
+clothes = []
+for item in data:
+    for i in item:
+        clothes.append(i)
+
+np.random.shuffle(clothes)
+
+#split to X and y
+X = []
+y =[]
+
+for item in clothes:
+    y.append(item[1])
+    x0 = []
+    for j in item[0]:
+        x0 = x0+j
+    X.append(x0)
+
+lda = LinearDiscriminantAnalysis(n_components=1)
+lda.fit(X,y).transform(X)
+
+lda.explained_variance_ratio_
